@@ -3,66 +3,147 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Mi Vale, ¿quieres ser mi San Valentín?</title>
+    <title>El Juego de Vale 💖</title>
     <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
         body {
-            background-color: #ffebee;
             display: flex;
             justify-content: center;
             align-items: center;
             height: 100vh;
+            background-color: #ffebee;
             font-family: Arial, sans-serif;
-            margin: 0;
-        }
-        .container {
             text-align: center;
+            flex-direction: column;
+        }
+        canvas {
+            border: 3px solid #e91e63;
             background-color: #fff;
-            padding: 20px;
-            border-radius: 10px;
-            box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.2);
         }
-        h1 {
+        .message {
+            display: none;
+            font-size: 24px;
+            font-weight: bold;
             color: #e91e63;
-        }
-        .buttons {
             margin-top: 20px;
         }
+        .controls {
+            margin-top: 10px;
+        }
         button {
-            padding: 10px 20px;
-            font-size: 16px;
-            margin: 10px;
+            padding: 10px;
+            font-size: 18px;
+            margin: 5px;
             border: none;
             cursor: pointer;
             border-radius: 5px;
-        }
-        .yes {
             background-color: #ff4081;
             color: white;
-        }
-        .no {
-            background-color: #ddd;
-            color: black;
-            position: absolute;
         }
     </style>
 </head>
 <body>
-    <div class="container">
-        <h1>Mi Vale, ¿quieres ser mi San Valentín?</h1>
-        <div class="buttons">
-            <button class="yes" onclick="alert('¡Sabía que dirías que sí! 💖')">Sí</button>
-            <button class="no" onmouseover="moveNoButton()">No</button>
-        </div>
+
+    <h1>Ayuda a Vale (👩) a recolectar los corazones ❤️</h1>
+    <canvas id="gameCanvas" width="500" height="300"></canvas>
+    <div class="message" id="winMessage">🎉 Mi Vale, ¿quieres ser mi San Valentín? 💕</div>
+    
+    <div class="controls">
+        <button onclick="moveLeft()">⬅️</button>
+        <button onclick="moveRight()">➡️</button>
     </div>
 
     <script>
-        function moveNoButton() {
-            let noButton = document.querySelector(".no");
-            let x = Math.random() * (window.innerWidth - 100);
-            let y = Math.random() * (window.innerHeight - 50);
-            noButton.style.left = x + "px";
-            noButton.style.top = y + "px";
+        const canvas = document.getElementById("gameCanvas");
+        const ctx = canvas.getContext("2d");
+        const winMessage = document.getElementById("winMessage");
+
+        let vale = { x: 50, y: 230, width: 30, height: 30 }; 
+        let hearts = [];
+        let goal = { x: 450, y: 230, width: 30, height: 30, active: false }; 
+        let collectedHearts = 0;
+
+        // Generar 10 corazones en posiciones aleatorias
+        for (let i = 0; i < 10; i++) {
+            hearts.push({
+                x: Math.random() * (canvas.width - 40) + 20,
+                y: Math.random() * (canvas.height - 100) + 50,
+                width: 20,
+                height: 20,
+                collected: false
+            });
         }
+
+        function draw() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+            // Dibujar a Vale (👩)
+            ctx.fillText("👩", vale.x, vale.y);
+
+            // Dibujar corazones ❤️
+            hearts.forEach(heart => {
+                if (!heart.collected) {
+                    ctx.fillText("❤️", heart.x, heart.y);
+                }
+            });
+
+            // Dibujar la meta 🎯 si está activa
+            if (goal.active) {
+                ctx.fillText("🎯", goal.x, goal.y);
+            }
+        }
+
+        function update() {
+            hearts.forEach(heart => {
+                if (!heart.collected && isColliding(vale, heart)) {
+                    heart.collected = true;
+                    collectedHearts++;
+                }
+            });
+
+            // Si recoge todos los corazones, activar la meta 🎯
+            if (collectedHearts === 10) {
+                goal.active = true;
+            }
+
+            // Si toca la meta, mostrar el mensaje 💖
+            if (goal.active && isColliding(vale, goal)) {
+                winMessage.style.display = "block";
+            }
+        }
+
+        function isColliding(a, b) {
+            return (
+                a.x < b.x + b.width &&
+                a.x + a.width > b.x &&
+                a.y < b.y + b.height &&
+                a.y + a.height > b.y
+            );
+        }
+
+        function moveLeft() {
+            if (vale.x > 10) vale.x -= 20;
+            update();
+            draw();
+        }
+
+        function moveRight() {
+            if (vale.x < canvas.width - 40) vale.x += 20;
+            update();
+            draw();
+        }
+
+        document.addEventListener("keydown", function(event) {
+            if (event.key === "ArrowLeft") moveLeft();
+            if (event.key === "ArrowRight") moveRight();
+        });
+
+        draw();
     </script>
+
 </body>
 </html>
